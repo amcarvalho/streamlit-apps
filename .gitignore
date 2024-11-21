@@ -163,3 +163,4 @@ cython_debug/
 
 # streamlit
 .streamlit
+.snowflake-tests
