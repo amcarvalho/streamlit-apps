@@ -1,16 +1,16 @@
 import streamlit as st
 import pandas as pd
-import modules.sf_handler_snowpark as sh
+import modules.sf_handler_connector as sh
 import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, handlers=[logging.StreamHandler()])
 logging.getLogger("snowflake.connector").setLevel(logging.WARNING)
-connection = sh.get_connection()
-logging.info("Connection established.")
 
 def process_input(user_input):
-    df = sh.run_query_into_df(connection, f"select * from {user_input}")
+    conn = sh.get_connection()
+    logging.info("Connection established.")
+    df = sh.run_query(conn, f"select * from {user_input}", 'df')
     return df
 
 # Title of the app

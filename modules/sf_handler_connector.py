@@ -11,7 +11,6 @@ def get_connection(connection_name="snowflake"):
         account=section["account"],
         user=section["user"],
         password=section["password"],
-        authenticator=section["authenticator"],
         client_session_keep_alive=section.get("client_session_keep_alive", False),
     )
 
