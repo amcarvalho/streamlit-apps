@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import modules.sf_handler_snowpark as sh
+import modules.snowflake_handler_snowpark as sh
 import logging
 
 # Configure logging
