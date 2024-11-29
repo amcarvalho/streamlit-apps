@@ -6,14 +6,12 @@ The initial setup involves several steps. Please read and follow these steps car
 * Fork/copy this repo into your own organisation or project. If this repo already is a copy
 within your organisation, you will only need to clone this repo. 
 
+* Create a python virtual environment. 
+
 * Create a file called `secrets.toml` within a folder called `.streamlit` within the root of
 this repo. This file will contain secrets used to connect to Snowflake using your own account.
 More details about what this file should contain are explained in the 
 [Configure secrets.toml file](#configure-secrets.toml-file) section.
-
-* Configure an environment variable named `STREAMLIT_ENV` to the value `local`. Follow 
-[this guide](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) 
-if you don't know how to set environment variables on Windows/MacOS.
 
 ## Configure secrets.toml file
 Create a file called `secrets.toml` within the top-level folder `.streamlit`.
@@ -33,9 +31,15 @@ so unless you explicitly remove it from there, you won't accidentally commit you
 the repo/github.
 
 # How to Create an App
-Each new App should be created within a subfolder of the `apps` top-folder. Within each of these you should have at least 2 files:
-* A `requirements.txt` file describing which python packages are required for your application
-* An `app.py` file which will contain the main entrypoint to your streamlit application
-* A `config.toml` describing some aspects of how the application will connect to Snowflake
+Create each new App within a subfolder of the `apps` top-folder. Within each of these you should have at least 2 files:
+- An `app.py` file which will contain the main entrypoint to your streamlit application
+- A `app.conf` describing some configuration options for each app, namely:
+    - app_name: The name of the streamlit Application
+    - allowed_roles: which Snowflake roles will have access to the app
 
 This repo provides a set of common libraries which can be used by all applications. These libraries will be included in the packages of all applications that are deployed to Snowflake.
+
+# Deployment
+Whenever each app is deployed, a schema will be created for that app. The roles which are specified
+to have access to the app will be grant write permissions to this schema. This schema will also 
+contain a stage where the app codebase is uploaded into in order to run in Snowflake's cloud.

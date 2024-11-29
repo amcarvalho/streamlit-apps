@@ -4,9 +4,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 import modules.utils as utils
 import streamlit as st
 logger = utils.configure_logging_and_get_logger()
-secrets = utils.get_secrets()
+
 session = utils.get_connection(
-    secrets,
     api="snowpark"
 )
 logger.info("Connection Established")
