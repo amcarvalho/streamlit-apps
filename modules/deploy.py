@@ -93,9 +93,6 @@ def put_files_into_stage(app):
     logger.info(f"put file://{current_folder}/modules/utils.py @{stage}/modules auto_compress=false")
     cursor.execute(f"put file://{current_folder}/modules/utils.py @{stage}/modules auto_compress=false")
     
-    logger.info(f"put file://{current_folder}/modules/utils.py @{stage}/modules auto_compress=false")
-    cursor.execute(f"put file://{current_folder}/modules/utils.py @{stage}/modules auto_compress=false")
-    
     files = _list_files_recursively(f"{current_folder}/apps/{app}")
     for file in files:
         filename = os.path.basename(file)
@@ -116,7 +113,7 @@ def create_streamlit(app):
     schema = f"{secrets['deployment']['database']}.{app}"
     statement = f"""
         create or replace streamlit {schema}.{app}
-        root_location='@data_streamlit_apps.sample_app.stage' 
+        root_location='@data_streamlit_apps.{app}.stage' 
         main_file='app.py' 
         query_warehouse='{get_app_warehouse(app)}'
         title = '{get_app_name(app)}';
@@ -138,9 +135,9 @@ def create_app(app):
 if __name__ == "__main__":
     apps = get_apps(apps_folder)
 
-    print("Apps:")
     try:
         for app in apps:
+            logger.info(f"Creating App: {app}")
             create_app(app)
     finally:
         cursor.close()
