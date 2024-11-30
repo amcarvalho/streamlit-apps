@@ -32,10 +32,30 @@ def get_secrets() -> Dict[str, str]:
         'secrets.toml'
     ]
     secrets_path = _get_existing_file(file_paths)
+    if secrets_path is None:
+        return None
+    else:
+        with open(secrets_path) as f:
+            secrets = toml.load(f)
+        return secrets
 
-    with open(secrets_path) as f:
-        secrets = toml.load(f)
-    return secrets
+
+def get_local_development_secrets():
+    secrets = get_secrets()
+    return secrets['local_development']
+
+
+def get_deployment_secrets():
+    secrets = get_secrets()
+    if secrets is None:
+        secrets = dict()
+        secrets['account'] = os.getenv('ACCOUNT')
+        secrets['user'] = os.getenv('USER')
+        secrets['password'] = os.getenv('PASSWORD')
+        secrets['role'] = os.getenv('ROLE')
+        return secrets
+    else:
+        return secrets['deployment']
 
 
 def _get_calling_script_folder():
@@ -45,6 +65,7 @@ def _get_calling_script_folder():
     calling_script_dir = os.path.dirname(os.path.abspath(calling_script_path))
     folder_name = os.path.basename(calling_script_dir)
     return folder_name
+
 
 def configure_logging_and_get_logger() -> logging.Logger:
     """
@@ -85,15 +106,10 @@ def get_connection(api="snowpark", account="local_development"):
         return get_active_session()
     except SnowparkSessionException:
         # Local Development
-        secrets = get_secrets()
-        parameters = {
-            "account": secrets[account]['account'],
-            "user": secrets[account]['user'],
-            "password": secrets[account]['password'],
-            "role": secrets[account]['role'],
-            "warehouse": secrets[account]['warehouse'],
-            "client_session_keep_alive": secrets[account].get('client_session_keep_alive', True),
-        }
+        if account == 'local_development':
+            parameters = get_local_development_secrets()
+        else:
+            parameters = get_deployment_secrets()
 
         if api == "snowpark":
             return Session.builder.configs(parameters).create()
