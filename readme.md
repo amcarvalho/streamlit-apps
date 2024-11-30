@@ -1,45 +1,65 @@
-This repo allows creation and deployment of Snowflake Streamlit Native Apps.
+# Snowflake Streamlit Applications
 
-# Initial Setup
-The initial setup involves several steps. Please read and follow these steps carefully.
+This repository allows the creation and deployment of Snowflake Streamlit Applications.
 
-* Fork/copy this repo into your own organisation or project. If this repo already is a copy
-within your organisation, you will only need to clone this repo. 
+## Initial Setup
 
-* Create a python virtual environment. 
+Please follow these steps carefully for the initial setup:
 
-* Create a file called `secrets.toml` within a folder called `.streamlit` within the root of
-this repo. This file will contain secrets used to connect to Snowflake using your own account.
-More details about what this file should contain are explained in the 
-[Configure secrets.toml file](#configure-secrets.toml-file) section.
+1. Clone this repository by running:
+    ```bash
+    git clone https://github.com/amcarvalho/streamlit-apps/
+    ```
 
-## Configure secrets.toml file
-Create a file called `secrets.toml` within the top-level folder `.streamlit`.
+2. Create a Python virtual environment:
+    ```bash
+    python3 -m venv venv
+    ```
 
-Copy/paste the snippet below into that file. Change the values to the details of your Snowflake
-account.
-```
-[local_development]
-account = "account_locator.region.cloud_provider" # Your Snowflake account
-user = "first_name.last_name@domain.com" # Your Snowflake username
-password = "my_password" # Your Snowflake password
-client_session_keep_alive = true
-```
+3. Install Python dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-Do not commit this file to the repo. The `.streamlit` folder has already been added to `.gitignore`,
-so unless you explicitly remove it from there, you won't accidentally commit your credentials into
-the repo/github.
+4. Create a file called `secrets.toml` within the `.streamlit` folder in the root directory of the repository. You can use the example file `secrets.toml.example` as a reference.
 
-# How to Create an App
-Create each new App within a subfolder of the `apps` top-folder. Within each of these you should have at least 2 files:
-- An `app.py` file which will contain the main entrypoint to your streamlit application
-- A `app.conf` describing some configuration options for each app, namely:
-    - app_name: The name of the streamlit Application
-    - allowed_roles: which Snowflake roles will have access to the app
+    The `secrets.toml` file contains two sections:
+    - `local_development`: Configure your Snowflake credentials for local development.
+    - `deployment`: Configure Snowflake credentials if you need to deploy the applications to Snowflake locally. This is not recommended.
 
-This repo provides a set of common libraries which can be used by all applications. These libraries will be included in the packages of all applications that are deployed to Snowflake.
+    You can request support from one of your team's developers if needed.
 
-# Deployment
-Whenever each app is deployed, a schema will be created for that app. The roles which are specified
-to have access to the app will be grant write permissions to this schema. This schema will also 
-contain a stage where the app codebase is uploaded into in order to run in Snowflake's cloud.
+## Creating an Application
+
+Create each new application within a subfolder of the `apps` top-level folder. Each application should contain at least two files:
+- `app.py`: The main entry point for your Streamlit application.
+- `app.conf`: Contains configuration options for the application, such as:
+    - `app_name`: The name of the Streamlit application.
+    - `allowed_roles`: Snowflake roles that will have access to the application.
+
+This repository provides a set of common libraries that can be used by all applications. These libraries will be included in the packages of all applications deployed to Snowflake.
+
+There are two example starter apps that you can use to understand how to develop a new application and leverage some of the most common methods provided by the libraries.
+
+## Snowflake Connections
+
+The most important method provided by the common libraries is the `get_connection` method in the `utils` package. This method makes it easy to retrieve a Snowflake connection and use it to run queries. The method works both in local development and in production.
+
+- In local development mode, the connection uses your Snowflake credentials specified in the `secrets.toml` file, including which role will be used to run the queries.
+- In production, the connection leverages Snowpark's `get_active_session` method. This means that the application will use the session the user created when they logged on to Snowflake.
+
+## Deployment
+
+This repository includes a GitHub workflow that will automatically redeploy all applications to Snowflake whenever a code change is pushed to the master branch.
+
+When each application is deployed, a schema will be created for that application. The schema is not recreated on each deployment of the same application.
+
+The roles specified to have access to the application will be granted write permissions to this schema. This schema will also contain a stage where the application codebase is uploaded, allowing the application to run in Snowflake's cloud.
+
+## Accessing an Application
+
+You can access an application in Snowflake's UI via the Projects -> Streamlit sidebar menu. Once you choose one of the applications, it will start immediately. You can copy the URL from your browser and share it with users you want to provide access to.
+
+---
+
+If you need any further assistance, feel free to reach out to your team's developers or consult the example starter apps for more guidance.
