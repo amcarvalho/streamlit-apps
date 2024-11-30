@@ -4,12 +4,18 @@ import utils
 
 apps_folder = 'apps'
 logger = utils.configure_logging_and_get_logger()
-secrets = utils.get_secrets()
 connection = utils.get_connection(
     api="connector", 
     account="deployment"
 )
 cursor = connection.cursor()
+
+
+def get_deployment_config():
+    with open('.streamlit/deploy.conf') as f:
+        conf = toml.load(f)
+    return conf
+
 
 def get_apps(apps_folder):
     try:
@@ -30,7 +36,6 @@ def get_app_config(app):
     try:
         with open(f"{apps_folder}/{app}/app.conf") as f:
             conf = toml.load(f)
-
     except FileNotFoundError:
         return dict()
     return conf
@@ -57,10 +62,13 @@ def get_app_warehouse(app):
     try:
         return conf['warehouse']
     except KeyError:
-        return secrets['general_app_config']['warehouse']
+        deployment_config = get_deployment_config()
+        return deployment_config['warehouse']
+
 
 def create_app_schema(app):
-    database = secrets['deployment']['database']
+    deployment_config = get_deployment_config()
+    database = deployment_config['database']
     schema = f"{database}.{app}"
     statement = f"create schema if not exists {schema}"
     logger.info(statement)
@@ -77,6 +85,7 @@ def create_app_schema(app):
             logger.info(statement)
             cursor.execute(statement)
 
+
 def _list_files_recursively(directory):
     file_list = []
     for root, dirs, files in os.walk(directory):
@@ -87,12 +96,13 @@ def _list_files_recursively(directory):
 
 def put_files_into_stage(app):
     current_folder = os.getcwd()
-    stage = f"{secrets['deployment']['database']}.{app}.stage"
+    deployment_config = get_deployment_config()
+    database = deployment_config['database']
+    stage = f"{database}.{app}.stage"
     logger.info(f"REMOVE @{stage}")
     cursor.execute(f"REMOVE @{stage}")
     logger.info(f"put file://{current_folder}/modules/utils.py @{stage}/modules auto_compress=false")
     cursor.execute(f"put file://{current_folder}/modules/utils.py @{stage}/modules auto_compress=false")
-    
     files = _list_files_recursively(f"{current_folder}/apps/{app}")
     for file in files:
         filename = os.path.basename(file)
@@ -103,14 +113,17 @@ def put_files_into_stage(app):
     
 
 def create_stage(app):
-    stage = f"{secrets['deployment']['database']}.{app}.stage"
+    deployment_config = get_deployment_config()
+    database = deployment_config['database']
+    stage = f"{database}.{app}.stage"
     logger.info(f"create stage if not exists {stage}")
     cursor.execute(f"create stage if not exists {stage}")
 
 
 def create_streamlit(app):
-    get_app_config(app)
-    schema = f"{secrets['deployment']['database']}.{app}"
+    deployment_config = get_deployment_config()
+    database = deployment_config['database']
+    schema = f"{database}.{app}"
     statement = f"""
         create or replace streamlit {schema}.{app}
         root_location='@data_streamlit_apps.{app}.stage' 
