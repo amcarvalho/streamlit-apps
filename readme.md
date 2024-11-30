@@ -8,7 +8,7 @@ Please follow these steps carefully for the initial setup:
 
 1. Clone this repository by running:
     ```bash
-    git clone https://github.com/amcarvalho/streamlit-apps/
+    git clone https://github.com/amcarvalho/streamlit-apps && cd streamlit-apps
     ```
 
 2. Create a Python virtual environment:
